@@ -162,50 +162,71 @@ class Game {
             const computerDice = availableDice.splice(computerDiceIndex, 1)[0];
             console.log(`I chose my dice: ${computerDice.faces.join(',')}`);
 
-            this.performThrows(computerDice, availableDice);
+            console.log("\nChoose your dice:");
+            availableDice.forEach((die, index) => console.log(`${index} - ${die.faces.join(',')}`));
+            const userDiceIndex = this.promptUser("Your choice: ", availableDice.map((_, i) => i));
+            const userDice = availableDice.splice(userDiceIndex, 1)[0];
+            console.log(`You chose the dice: ${userDice.faces.join(',')}`);
+
+            this.performThrows(computerDice, userDice, true);
         } else {
             console.log("\nChoose your dice:");
             availableDice.forEach((die, index) => console.log(`${index} - ${die.faces.join(',')}`));
             const userDiceIndex = this.promptUser("Your choice: ", availableDice.map((_, i) => i));
             const userDice = availableDice.splice(userDiceIndex, 1)[0];
-
             console.log(`You chose the dice: ${userDice.faces.join(',')}`);
-            this.performThrows(availableDice[0], [userDice]);
+
+            const computerDiceIndex = RandomGenerator.generateSecureRandom(availableDice.length);
+            const computerDice = availableDice.splice(computerDiceIndex, 1)[0];
+            console.log(`I chose my dice: ${computerDice.faces.join(',')}`);
+
+            this.performThrows(userDice, computerDice, false);
         }
     }
-    performThrows(computerDice, userDiceArray) {
+
+    performThrows(firstDice, secondDice, firstPlayerIsComputer) {
         console.log("\nIt's time for the throws.");
 
-        console.log("It's time for my throw.");
-        const fairRandomComp = new FairRandom(6);
-        fairRandomComp.displayHMAC();
-        const computerNumber = RandomGenerator.generateSecureRandom(6);
-        const userNumber1 = this.promptUser("Add your number modulo 6 (0-5): ", [0, 1, 2, 3, 4, 5]);
-        const computerRollIndex = fairRandomComp.calculateResult(computerNumber + userNumber1);
-        fairRandomComp.revealKey();
-        const computerRoll = computerDice.roll(computerRollIndex);
-        console.log(`My roll is: ${computerRoll}`);
-
-        console.log("\nIt's time for your throw.");
-        const fairRandomUser = new FairRandom(6);
-        fairRandomUser.displayHMAC();
-        const computerNumber2 = RandomGenerator.generateSecureRandom(6);
-        const userNumber2 = this.promptUser("Add your number modulo 6 (0-5): ", [0, 1, 2, 3, 4, 5]);
-        const userRollIndex = fairRandomUser.calculateResult(computerNumber2 + userNumber2);
-        fairRandomUser.revealKey();
-        const userRoll = userDiceArray[0].roll(userRollIndex);
-        console.log(`Your roll is: ${userRoll}`);
-
+        if (firstPlayerIsComputer) {
+            console.log("I throw first.");
+            const computerRoll = this.getThrowResult(firstDice, true);
+            console.log("\nYour turn to throw.");
+            const userRoll = this.getThrowResult(secondDice, false);
+            this.compareRolls(userRoll, computerRoll);
+        } else {
+            console.log("Your turn to throw first.");
+            const userRoll = this.getThrowResult(firstDice, false);
+            console.log("\nMy turn to throw.");
+            const computerRoll = this.getThrowResult(secondDice, true);
+            this.compareRolls(userRoll, computerRoll);
+        }
+    }
+    getThrowResult(dice, isComputer) {
+        const fairRandom = new FairRandom(6);
+        fairRandom.displayHMAC();
+        const randomNumber = RandomGenerator.generateSecureRandom(6);
+        const userNumber = isComputer
+            ? randomNumber
+            : this.promptUser("Add your number modulo 6 (0-5): ", [0, 1, 2, 3, 4, 5]);
+        const rollIndex = fairRandom.calculateResult(randomNumber + userNumber);
+        fairRandom.revealKey();
+        const roll = dice.roll(rollIndex);
+        console.log(`${isComputer ? "My" : "Your"} roll is: ${roll}`);
+        return roll;
+    }
+    compareRolls(userRoll, computerRoll) {
         if (userRoll > computerRoll) {
-            console.log("You win (" + userRoll + " > " + computerRoll + ")!");
+            console.log(`You win (${userRoll} > ${computerRoll})!`);
         } else if (userRoll < computerRoll) {
-            console.log("I win (" + computerRoll + " > " + userRoll + ")!");
+            console.log(`I win (${computerRoll} > ${userRoll})!`);
         } else {
             console.log("It's a tie!");
         }
     }
 
+
 }
+
 
 try {
     const dice = InputParser.parseDice(process.argv.slice(2));
