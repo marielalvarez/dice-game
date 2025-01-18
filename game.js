@@ -27,7 +27,7 @@ class Dice {
     }
 }
 
-// validates and parses command-line arguments.
+// validates the given dices.
 class InputParser {
     static parseDice(args) {
         if (args.length < 3) {
@@ -129,12 +129,14 @@ class Game {
         fairRandom.displayHMAC();
 
         const userGuess = promptUser("Guess my number (0 or 1): ", [0, 1, 'X']);
+        const userGuessNumber = userGuess !== 'X' ? parseInt(userGuess, 10) : null;
+
         if (userGuess === 'X') {
             console.log("Exiting the game. Goodbye!");
             process.exit(0);
         }
 
-        const computerChoice = fairRandom.calculateResult(Number(userGuess));
+        const computerChoice = fairRandom.calculateResult(Number(userGuessNumber));
         fairRandom.revealKey();
         console.log(computerChoice === 0 ? "You go first!" : "I go first!");
 
@@ -144,13 +146,21 @@ class Game {
     performThrows() {
         console.log("\nChoose your dice:");
         this.dice.forEach((die, index) => console.log(`${index} - ${die.faces.join(',')}`));
-        const userDiceIndex = promptUser("Your choice: ", this.dice.map((_, i) => i));
+        const userDiceIndex = parseInt(
+            promptUser("Your choice: ", this.dice.map((_, i) => i.toString())),
+            10
+        );
+
         const userDice = this.dice[userDiceIndex];
 
         const fairRandom = new FairRandom(6);
         fairRandom.displayHMAC();
 
-        const userRollIndex = promptUser("Add your number modulo 6: ", [0, 1, 2, 3, 4, 5]);
+        const userRollIndex = parseInt(
+            promptUser("Add your number modulo 6: ", ['0', '1', '2', '3', '4', '5']),
+            10
+        );
+
         const resultIndex = fairRandom.calculateResult(Number(userRollIndex));
         fairRandom.revealKey();
 
