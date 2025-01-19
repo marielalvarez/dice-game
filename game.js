@@ -206,13 +206,10 @@ class Game {
         const fairRandom = new FairRandom(6);
         fairRandom.displayHMAC();
 
-        // La computadora elige un número entre 0 y 5.
         const computerNumber = RandomGenerator.generateSecureRandom(6);
 
-        // El usuario elige un número independientemente de quién sea el turno.
         const userNumber = this.promptUser("Add your number modulo 6 (0-5): ", [0, 1, 2, 3, 4, 5]);
 
-        // Si es el turno de la computadora, se calcula el índice basado en ambos números.
         if (isComputer) {
             console.log(`Computer chose number: ${computerNumber}`);
         }
@@ -221,7 +218,6 @@ class Game {
 
         fairRandom.revealKey();
 
-        // Determina el resultado del lanzamiento basado en el índice.
         const roll = dice.roll(rollIndex);
         console.log(`${isComputer ? "My" : "Your"} roll is: ${roll}`);
         return roll;
