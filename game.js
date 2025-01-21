@@ -1,3 +1,7 @@
+// demo (4 dice, 3 dice, no dice): 
+// node game.js 1,2,3,4,5,6 1,2,3,4,5,6 1,2,3,4,5,6 1,2,3,4,5,6 
+// node game.js 2,2,4,4,9,9 1,1,6,6,8,8 3,3,5,5,7,7
+// node game.js
 const crypto = require('crypto');
 const Table = require('cli-table3');
 
@@ -21,9 +25,10 @@ class Dice {
     }
 
     roll(index) {
-        return this.faces[index];
+        return this.faces[index % this.faces.length];
     }
 }
+
 
 class InputParser {
     static parseDice(args) {
@@ -52,15 +57,15 @@ class FairRandom {
     displayHMAC() {
         console.log(`HMAC: ${this.hmac}`);
     }
-
-    calculateResult(userNumber) {
-        return (this.computerNumber + userNumber) % this.range;
-    }
-
     revealKey() {
+        const expectedHMAC = RandomGenerator.generateHMAC(this.key, this.computerNumber);
+        if (expectedHMAC !== this.hmac) {
+            throw new Error("HMAC verification failed: Tampering detected!");
+        }
         console.log(`Computer Number: ${this.computerNumber}`);
         console.log(`Key: ${this.key.toString('hex')}`);
     }
+
 }
 
 class ProbabilityCalculator {
@@ -206,22 +211,23 @@ class Game {
         const fairRandom = new FairRandom(6);
         fairRandom.displayHMAC();
 
-        const computerNumber = RandomGenerator.generateSecureRandom(6);
+        const computerNumber = fairRandom.computerNumber;
+        const userNumber = parseInt(this.promptUser("Add your number modulo 6 (0-5): ", [0, 1, 2, 3, 4, 5]), 10);
 
-        const userNumber = this.promptUser("Add your number modulo 6 (0-5): ", [0, 1, 2, 3, 4, 5]);
-
-        if (isComputer) {
-            console.log(`Computer chose number: ${computerNumber}`);
+        if (isNaN(computerNumber) || isNaN(userNumber)) {
+            console.error("Invalid numbers generated or provided.");
+            return null;
         }
 
         const rollIndex = (computerNumber + userNumber) % 6;
-
         fairRandom.revealKey();
 
         const roll = dice.roll(rollIndex);
         console.log(`${isComputer ? "My" : "Your"} roll is: ${roll}`);
         return roll;
     }
+
+
 
 
 
